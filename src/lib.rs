@@ -108,3 +108,48 @@ pub async fn find_common_ancestor(
     }
     Err(Error::new(ErrorKind::NotFound, "None"))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[actix_rt::test]
+    async fn ancestor_absent() {
+        let data_chain_1: Vec<u8> = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        let data_chain_2: Vec<u8> = vec![10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+
+        let chain_1 = start_chain(data_chain_1);
+        let chain_2 = start_chain(data_chain_2);
+
+        let common_block: Result<Option<Block>, io::Error> =
+            find_common_ancestor(&mut [chain_1.unwrap(), chain_2.unwrap()]).await;
+
+        assert!(common_block.is_err());
+    }
+
+    #[actix_rt::test]
+    async fn ancestor_present() {
+        let data_chain_1: Vec<u8> = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        let data_chain_2: Vec<u8> = vec![10, 20, 30, 40, 50, 6, 7, 8, 9, 10];
+
+        let chain_1 = start_chain(data_chain_1);
+        let chain_2 = start_chain(data_chain_2);
+
+        let common_block: Result<Option<Block>, io::Error> =
+            find_common_ancestor(&mut [chain_1.unwrap(), chain_2.unwrap()]).await;
+
+        let expected = Block {
+            block_number: 6,
+            hash: [
+                103, 88, 110, 152, 250, 210, 125, 160, 185, 150, 139, 192, 57, 161, 239, 52, 201,
+                57, 185, 184, 229, 35, 168, 190, 248, 157, 71, 134, 8, 197, 236, 246,
+            ],
+            parent_hash: [
+                212, 115, 94, 58, 38, 94, 22, 238, 224, 63, 89, 113, 139, 155, 93, 3, 1, 156, 7,
+                216, 182, 197, 31, 144, 218, 58, 102, 110, 236, 19, 171, 53,
+            ],
+            content: Box::new([6]),
+        };
+
+        assert_eq!(common_block.unwrap().unwrap(), expected);
+    }
+}
