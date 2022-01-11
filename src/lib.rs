@@ -94,12 +94,10 @@ pub async fn find_common_ancestor(
                 continue;
             }
             if parent_map.contains_key(parent_key) {
-                println!("{:?}", &hex::encode(block.parent_hash));
                 common_ancestor_block = current_map
                     .get(parent_key)
                     .expect("could not get ancestor block")
                     .clone();
-                println!("{:?}", common_ancestor_block);
                 return Ok(Some(common_ancestor_block));
             }
             parent_map.insert(parent_key.to_string(), true);
